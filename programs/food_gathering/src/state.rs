@@ -14,6 +14,8 @@ pub struct GlobalState {
     pub max_amount_for_stake: u64,
     pub cycle_staked_amount: u64,
     pub cycle_timestamp: u32,
+    pub antc_price: u64,
+    pub antc_expo: u64,
 }
 
 #[account]

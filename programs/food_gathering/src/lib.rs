@@ -8,7 +8,7 @@ pub mod constants;
 pub mod utils;
 use instructions::*;
 
-declare_id!("HL1wZTiWUiqzdfSANMd5b7TGcDr6FVA13RF4SdrDUaiQ");
+declare_id!("6a1ZCQTu4ecQwTyi6tH7AYppqaaAHeNEN7KSfsmfbzzn");
 
 #[program]
 pub mod food_gathering {
@@ -26,8 +26,8 @@ pub mod food_gathering {
 
     // owner or minter function
 
-    pub fn initialize(ctx: Context<Initialize>, new_owner: Pubkey) -> Result<()> {
-        instructions::initialize(ctx, new_owner)
+    pub fn initialize(ctx: Context<Initialize>, new_owner: Pubkey, antc_price: u64, antc_expo: u64) -> Result<()> {
+        instructions::initialize(ctx, new_owner, antc_price, antc_expo)
     }
 
     pub fn deposit_ant_food_token(ctx: Context<DepositAntFoodToken>, amount: u64) -> Result<()> {

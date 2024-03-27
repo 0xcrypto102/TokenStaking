@@ -10,7 +10,7 @@ use anchor_spl::{
 use std::mem::size_of;
 
 #[access_control(ctx.accounts.validate())]
-pub fn initialize(ctx: Context<Initialize>, new_owner: Pubkey) -> Result<()> {
+pub fn initialize(ctx: Context<Initialize>, new_owner: Pubkey, antc_price: u64, antc_expo: u64) -> Result<()> {
     let accts = ctx.accounts;
     accts.global_state.is_initialized = 1;
     accts.global_state.is_paused = false;
@@ -23,6 +23,8 @@ pub fn initialize(ctx: Context<Initialize>, new_owner: Pubkey) -> Result<()> {
     accts.global_state.max_amount_for_stake = MAX_AMOUNT_FOR_STAKE;
     accts.global_state.cycle_staked_amount = CYCLE_STAKED_AMOUNT;
     accts.global_state.cycle_timestamp = CYCLE_TIMESTAMP;
+    accts.global_state.antc_price = antc_price;
+    accts.global_state.antc_expo = antc_expo;
 
     accts.minter.minter_key = new_owner;
     accts.minter.is_minter = true;
@@ -75,6 +77,9 @@ pub fn stake(ctx: Context<Stake>, antc_amount: u64) -> Result<()> {
     transfer(cpi_ctx, antc_amount)?;
 
     // burn antc coin
+    let decimal = accts.ant_coin.decimals;
+    let burn_amount = accts.global_state.stake_fee_amount * 10_u64.pow(u32::try_from(decimal).unwrap()) / accts.global_state.antc_price * accts.global_state.antc_expo;
+
     let cpi_context = CpiContext::new(
         accts.token_program.to_account_info(),
         Burn {
@@ -83,7 +88,8 @@ pub fn stake(ctx: Context<Stake>, antc_amount: u64) -> Result<()> {
             authority: accts.user.to_account_info(),
         },
     );
-    burn(cpi_context, accts.global_state.stake_fee_amount)?;
+   
+    burn(cpi_context, burn_amount)?;
 
     emit!(FoodGatheringStaked {
         staker: accts.user.key(),

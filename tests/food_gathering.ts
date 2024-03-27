@@ -52,8 +52,12 @@ describe("food_gathering", async () => {
 
   it("Is initialized!", async () => {
     // Add your test here.
+    const antc_price = 735;
+    const antc_expo = 10000;
     const tx = await program.rpc.initialize(
       owner.publicKey,
+      new anchor.BN(antc_price),
+      new anchor.BN(antc_expo),
       {
         accounts: {
           owner: owner.publicKey,
