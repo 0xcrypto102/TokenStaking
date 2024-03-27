@@ -139,6 +139,8 @@ pub fn unstake(ctx: Context<Unstake>) -> Result<()> {
         cpi_ctx.with_signer(signer),
         accts.staked_info.staked_amount
     )?;
+    accts.staked_info.staked_amount = 0;
+    accts.staked_info.reward_debt = 0;
 
     emit!(FoodGatheringUnStaked {
         staker: accts.user.key(),
@@ -359,11 +361,10 @@ pub struct Stake<'info> {
 
     // user account for ant coin
     #[account(mut)]
-    user_ant_coin_account: Box<Account<'info, TokenAccount>>,
+    pub user_ant_coin_account: Box<Account<'info, TokenAccount>>,
 
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
 }
 
 #[derive(Accounts)]
@@ -384,7 +385,6 @@ pub struct Unstake<'info> {
         mut,
         seeds = [STAKED_INFO_SEED, user.key().as_ref()],
         bump,
-        close = user
     )]
     pub staked_info: Account<'info, StakedInfo>,
 
@@ -401,15 +401,10 @@ pub struct Unstake<'info> {
         token::mint = ant_coin,
         token::authority = global_state,
     )]
-    ant_coin_vault_account: Box<Account<'info, TokenAccount>>,
+    pub ant_coin_vault_account: Box<Account<'info, TokenAccount>>,
 
     // user account for ant coin
-    #[account(
-        init_if_needed,
-        payer = user,
-        associated_token::mint = ant_coin,
-        associated_token::authority = user
-    )]
+    #[account(mut)]
     user_ant_coin_account: Box<Account<'info, TokenAccount>>,
 
     #[account(
@@ -425,21 +420,14 @@ pub struct Unstake<'info> {
         token::mint = ant_food_token,
         token::authority = global_state,
     )]
-    ant_food_token_vault_account: Box<Account<'info, TokenAccount>>,
+    pub ant_food_token_vault_account: Box<Account<'info, TokenAccount>>,
 
-    // user account for ant coin
-    #[account(
-        init_if_needed,
-        payer = user,
-        associated_token::mint = ant_food_token,
-        associated_token::authority = user
-    )]
-    user_ant_food_token_account: Box<Account<'info, TokenAccount>>,
+    // user account for ant food coin
+    #[account(mut)]
+    pub user_ant_food_token_account: Box<Account<'info, TokenAccount>>,
 
     pub token_program: Program<'info, Token>,
-    pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
 }
 
 #[derive(Accounts)]
@@ -478,7 +466,7 @@ pub struct DepositAntFoodToken<'info> {
         token::mint = ant_food_token,
         token::authority = global_state,
     )]
-    ant_food_token_vault_account: Box<Account<'info, TokenAccount>>,
+    pub ant_food_token_vault_account: Box<Account<'info, TokenAccount>>,
 
     // minter account for ant food token
     #[account(mut)]

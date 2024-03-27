@@ -48,7 +48,10 @@ describe("food_gathering", async () => {
     program.programId
   );
 
+  console.log(antFoodTokenVaultAccount.toString());
+
   const rentSysvar = anchor.web3.SYSVAR_RENT_PUBKEY;
+  getTokenBalanceWeb3(connection, antFoodTokenVaultAccount);
 
   it("Is initialized!", async () => {
     // Add your test here.
@@ -127,4 +130,119 @@ describe("food_gathering", async () => {
     console.log(tx);
   });
 
+  it("stake antc",  async() => {
+    
+    const antCoin = new PublicKey("FLitGKEPBvBNqPVZbfgRPR5fwcsgSrRv6BDZjxRRFhUC");
+
+    const [stakedInfo, stakeInfoBump] = await anchor.web3.PublicKey.findProgramAddress(
+      [
+        Buffer.from("STAKED-INFO-SEED"),
+        owner.publicKey.toBuffer()
+      ],
+      program.programId
+    );
+
+    const [antCoinVaultAccount, antCoinVaultAccountBump] = await anchor.web3.PublicKey.findProgramAddress(
+      [
+        Buffer.from("TOKEN-VAULT-SEED"),
+        antCoin.toBuffer()
+      ],
+      program.programId
+    );
+
+    const userAntCoinAccount = await getAssociatedTokenAddress(
+      antCoin,
+      owner.publicKey
+    );
+
+    try {
+      const tx = await program.rpc.stake(
+        new anchor.BN(100000000),
+        {
+        accounts: {
+          user: owner.publicKey,
+          globalState,
+          stakedInfo,
+          antCoin,
+          antCoinVaultAccount,
+          userAntCoinAccount,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        },
+        signers:[owner]
+      });
+      console.log("vault coin balance", await getTokenBalanceWeb3(connection, antCoinVaultAccount));
+
+      console.log("vault food balance", await getTokenBalanceWeb3(connection, antFoodTokenVaultAccount));
+      console.log(tx);
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
+  it("unstake antc",  async() => {
+    
+    const antCoin = new PublicKey("FLitGKEPBvBNqPVZbfgRPR5fwcsgSrRv6BDZjxRRFhUC");
+    const antFood = new PublicKey("4JtesASQCh1ZYDdvCpgpMG5WLxMKyGAVt4tS4QS9L8Np");
+
+    const [stakedInfo, stakeInfoBump] = await anchor.web3.PublicKey.findProgramAddress(
+      [
+        Buffer.from("STAKED-INFO-SEED"),
+        owner.publicKey.toBuffer()
+      ],
+      program.programId
+    );
+
+    const [antCoinVaultAccount, antCoinVaultAccountBump] = await anchor.web3.PublicKey.findProgramAddress(
+      [
+        Buffer.from("TOKEN-VAULT-SEED"),
+        antCoin.toBuffer()
+      ],
+      program.programId
+    );
+
+    const userAntCoinAccount = await getAssociatedTokenAddress(
+      antCoin,
+      owner.publicKey
+    );
+
+    const userAntFoodTokenAccount = await getAssociatedTokenAddress(
+      antFood,
+      owner.publicKey
+    );
+
+    try {
+      const tx = await program.rpc.unstake(
+        {
+        accounts: {
+          user: owner.publicKey,
+          globalState,
+          stakedInfo,
+          antCoin,
+          antCoinVaultAccount,
+          userAntCoinAccount,
+          antFoodToken: antFood,
+          antFoodTokenVaultAccount,
+          userAntFoodTokenAccount,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        },
+        signers:[owner]
+      });
+      console.log("vault coin balance", await getTokenBalanceWeb3(connection, antCoinVaultAccount));
+
+      console.log("vault food balance", await getTokenBalanceWeb3(connection, antFoodTokenVaultAccount));
+
+      console.log(tx);
+    } catch (error) {
+      console.log(error);
+    }
+  });
 });
+
+async function getTokenBalanceWeb3(connection, tokenAccount) {
+  const info = await connection.getTokenAccountBalance(tokenAccount);
+  if (info.value.uiAmount == null) throw new Error('No balance found');
+  console.log('Balance (using Solana-Web3.js): ', info.value.uiAmount);
+  return info.value.uiAmount;
+}

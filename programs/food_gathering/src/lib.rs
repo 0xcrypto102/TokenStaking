@@ -8,7 +8,7 @@ pub mod constants;
 pub mod utils;
 use instructions::*;
 
-declare_id!("6a1ZCQTu4ecQwTyi6tH7AYppqaaAHeNEN7KSfsmfbzzn");
+declare_id!("EudLu51y9mdaTC5tWdGpptLocsfQimz3ZCyvcfA7DbRa");
 
 #[program]
 pub mod food_gathering {

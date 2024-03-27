@@ -5,7 +5,7 @@ seeds = false
 skip-lint = false
 
 [programs.devnet]
-food_gathering = "6a1ZCQTu4ecQwTyi6tH7AYppqaaAHeNEN7KSfsmfbzzn"
+food_gathering = "EudLu51y9mdaTC5tWdGpptLocsfQimz3ZCyvcfA7DbRa"
 
 [registry]
 url = "https://api.apr.dev"
